@@ -1,0 +1,64 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+	// Loom 会自动补齐 Minecraft 与 Fabric 的仓库，这里不需要额外写。
+	// 将来若引入第三方 mod 作为依赖，才在这里加 maven 坐标。
+}
+
+dependencies {
+	// 【关键】26.2 起 Minecraft **不再混淆**，
+	// 因此这里没有 `mappings` 那一行 —— 直接对官方未混淆的 jar 编译。
+	// 好处：API 名称就是 Mojang 官方名（ServerPlayer / ItemStack / Component），
+	//       不再受 yarn 改名影响。
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// 测试用
+	testImplementation platform('org.junit:junit-bom:5.11.4')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	// Minecraft 26.2 要求 Java 25
+	it.options.release = 25
+	it.options.encoding = 'UTF-8'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+test {
+	useJUnitPlatform()
+
+	// 安全闸测试要扫描源码，必须知道源码在哪。
+	// 不在测试里写死相对路径 —— Gradle 测试的工作目录不保证是什么，
+	// 换成 IDE 里点运行就会失效。
+	systemProperty 'mcoo.mainSrcDir',  layout.projectDirectory.dir('src/main/java').asFile.absolutePath
+	systemProperty 'mcoo.fixtureDir', layout.projectDirectory.dir('src/test/resources/guard-fixtures').asFile.absolutePath
+
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}
+}

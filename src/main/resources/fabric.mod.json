@@ -1,0 +1,24 @@
+{
+    "schemaVersion": 1,
+    "id": "mcoo",
+    "version": "${version}",
+    "name": "轻松维护",
+    "description": "McooServers 的仅服务端功能集合：送礼、每日在线时长奖励等。所有功能相互隔离，任一功能失效都不会影响服务器与其他功能。",
+    "authors": [
+        "McooServers"
+    ],
+    "license": "MIT",
+    "contact": {},
+    "environment": "server",
+    "entrypoints": {
+        "main": [
+            "com.mcoo.core.McooEntryPoint"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.19.0",
+        "minecraft": "~26.2",
+        "java": ">=25",
+        "fabric-api": "*"
+    }
+}
